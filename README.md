@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Impact Création — Portfolio de Ouoba Lamourdjoa Daniel
 
-## Getting Started
+Portfolio bilingue (FR/EN) pour **Ouoba Lamourdjoa Daniel** — Graphiste · Designer · Formateur en infographie — fondateur d'**Impact Création** (Niamey, Niger).
 
-First, run the development server:
+Stack : **Next.js 16 (App Router) + Supabase** (base de données Postgres + stockage des images), déployable sur **Vercel**.
+
+## Fonctionnalités
+
+- Site vitrine une page : Accueil, À propos, Services, Formations, Portfolio, Contact
+- Bascule **Français / Anglais** (mémorisée)
+- Galerie qui **adapte chaque image à son format** (aucune découpe) + lightbox
+- **Dashboard admin** (`/admin`) :
+  - Ajouter / supprimer des œuvres (upload image → Supabase Storage)
+  - Modifier les coordonnées (WhatsApp, téléphone, email, localisation)
+  - Changer le mot de passe
+- Contact direct via **WhatsApp** (+227 74 82 64 86) et formulaire « message rapide »
+
+## Installation
+
+```bash
+npm install
+```
+
+### 1. Créer le projet Supabase
+
+1. https://supabase.com → **New project** (région proche : Paris / Frankfurt)
+2. **SQL Editor** → coller le contenu de `supabase/schema.sql` → **Run**
+3. **Storage → New bucket** : nom `works`, **Public** activé
+
+### 2. Fichier de configuration
+
+```bash
+cp .env.example .env.local
+```
+
+Renseignez dans `.env.local` :
+- `SUPABASE_URL` → Project Settings → **API** → Project URL
+- `SUPABASE_SERVICE_ROLE_KEY` → Project Settings → **API** → service_role (jamais exposer cette clé publiquement)
+- `AUTH_SECRET` → générez-en une : `openssl rand -base64 32`
+
+### 3. Importer les œuvres existantes (optionnel)
+
+Le dossier `works-source/` contient les créations à importer :
+
+```bash
+npm run seed
+```
+
+Le script upload les images vers Supabase Storage et remplit la table `works` et les coordonnées par défaut.
+
+> 🔑 **Mot de passe admin par défaut : `impact2026`** — changez-le dès la première connexion dans `/admin`.
+
+## Développement
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Site : http://localhost:3000
+- Dashboard : http://localhost:3000/admin
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Déploiement sur Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Poussez le projet sur **GitHub** (`git init && git add . && git commit -m "init"` puis créez un dépôt)
+2. https://vercel.com → **Add New Project** → importez le dépôt
+3. Dans les **Environment Variables** du projet, ajoutez :
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `AUTH_SECRET`
+4. **Deploy** → c'est en ligne.
 
-## Learn More
+## Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+  page.tsx               # Site public
+  admin/page.tsx         # Dashboard admin
+  api/
+    public/              # GET données publiques (œuvres + coordonnées)
+    login/               # POST connexion / DELETE déconnexion
+    admin/works/         # GET list / POST ajout (upload)
+    admin/works/[id]/    # DELETE suppression
+    admin/settings/      # GET/PUT coordonnées + mot de passe
+components/              # Navbar, Hero, About, Services, Training, Gallery, Contact, Footer
+lib/                     # supabase, auth (HMAC + scrypt), i18n FR/EN
+supabase/schema.sql      # Schéma de la base
+scripts/seed.mjs         # Import des œuvres + coordonnées
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Sécurité
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Les clés Supabase ne sont utilisées que côté serveur (Route Handlers).
+- Les sessions admin sont des tokens signés (HMAC) en cookie `httpOnly`.
+- Les mots de passe sont hachés en **scrypt** avec sel.

@@ -36,6 +36,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# sources des œuvres (déjà uploadées en seed)
+/works-source/
+
+# credentials fournis en local (ne jamais les committer)
+/dani_supabse_credential.txt
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# extraction du CV (fichier temporaire)
+/cv.txt
