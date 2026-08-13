@@ -19,7 +19,10 @@ export default function AdminPage() {
   const [ui, setUi] = useState<UiState>("checking");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busyLogin, setBusyLogin] = useState(false);
+  const [busyAdd, setBusyAdd] = useState(false);
+  const [busySave, setBusySave] = useState(false);
+  const [busyPwd, setBusyPwd] = useState(false);
 
   const [works, setWorks] = useState<Work[]>([]);
 
@@ -84,7 +87,7 @@ export default function AdminPage() {
 
   const doLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBusy(true);
+    setBusyLogin(true);
     setLoginError("");
     try {
       const res = await fetch("/api/login", {
@@ -95,13 +98,14 @@ export default function AdminPage() {
       const data = await res.json();
       if (!res.ok) {
         setLoginError(data.error || "Erreur de connexion.");
-        setBusy(false);
+        setBusyLogin(false);
         return;
       }
       await checkSession();
+      setBusyLogin(false);
     } catch {
       setLoginError("Erreur réseau. Réessayez.");
-      setBusy(false);
+      setBusyLogin(false);
     }
   };
 
@@ -128,7 +132,7 @@ export default function AdminPage() {
       flash("err", "Choisissez une image.");
       return;
     }
-    setBusy(true);
+    setBusyAdd(true);
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -142,7 +146,7 @@ export default function AdminPage() {
       const data = await res.json();
       if (!res.ok) {
         flash("err", data.error || "Échec de l'ajout.");
-        setBusy(false);
+        setBusyAdd(false);
         return;
       }
       setWorks((prev) => [data.work, ...prev]);
@@ -153,10 +157,10 @@ export default function AdminPage() {
       setPreview("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       flash("ok", "Œuvre ajoutée !");
-      setBusy(false);
+      setBusyAdd(false);
     } catch {
       flash("err", "Erreur réseau. Réessayez.");
-      setBusy(false);
+      setBusyAdd(false);
     }
   };
 
@@ -173,7 +177,7 @@ export default function AdminPage() {
 
   const doSaveContacts = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBusy(true);
+    setBusySave(true);
     const res = await fetch("/api/admin/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -185,13 +189,13 @@ export default function AdminPage() {
     } else {
       flash("err", data.error || "Échec de l'enregistrement.");
     }
-    setBusy(false);
+    setBusySave(false);
   };
 
   const doChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPassword) return;
-    setBusy(true);
+    setBusyPwd(true);
     const res = await fetch("/api/admin/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -204,7 +208,7 @@ export default function AdminPage() {
     } else {
       flash("err", data.error || "Échec de la modification.");
     }
-    setBusy(false);
+    setBusyPwd(false);
   };
 
   const inputCls =
@@ -251,10 +255,10 @@ export default function AdminPage() {
           {loginError && <p className="mt-2 text-sm text-red-600">{loginError}</p>}
           <button
             type="submit"
-            disabled={busy}
+            disabled={busyLogin}
             className="mt-5 w-full rounded-full bg-navy-950 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-800 disabled:opacity-60"
           >
-            {busy ? "Connexion…" : "Se connecter"}
+            {busyLogin ? "Connexion…" : "Se connecter"}
           </button>
           <Link href="/" className="mt-4 block text-center text-sm text-zinc-500 hover:text-orange-600">
             ← Retour au site
@@ -354,10 +358,10 @@ export default function AdminPage() {
 
             <button
               type="submit"
-              disabled={busy}
+              disabled={busyAdd}
               className="mt-5 w-full rounded-full bg-orange-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-400 disabled:opacity-60"
             >
-              {busy ? "Envoi…" : "Ajouter l'œuvre"}
+              {busyAdd ? "Envoi…" : "Ajouter l'œuvre"}
             </button>
           </form>
 
@@ -391,10 +395,10 @@ export default function AdminPage() {
             </div>
             <button
               type="submit"
-              disabled={busy}
+              disabled={busySave}
               className="mt-5 w-full rounded-full bg-navy-950 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-800 disabled:opacity-60"
             >
-              {busy ? "Enregistrement…" : "Enregistrer les coordonnées"}
+              {busySave ? "Enregistrement…" : "Enregistrer les coordonnées"}
             </button>
           </form>
         </section>
@@ -414,10 +418,10 @@ export default function AdminPage() {
             </div>
             <button
               type="submit"
-              disabled={busy || !newPassword}
+              disabled={busyPwd || !newPassword}
               className="rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50"
             >
-              Mettre à jour
+              {busyPwd ? "Mise à jour…" : "Mettre à jour"}
             </button>
           </form>
         </section>
