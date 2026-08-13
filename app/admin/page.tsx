@@ -321,7 +321,7 @@ export default function AdminPage() {
           >
             <h2 className="font-display text-lg font-bold text-navy-950">Ajouter une œuvre</h2>
             <p className="mt-1 text-xs text-zinc-500">
-              JPG, PNG, WebP ou GIF — max 8 Mo. L&apos;image est envoyée sur le serveur (Vercel Blob / Supabase Storage).
+              JPG, PNG, WebP ou GIF — max 8 Mo.
             </p>
 
             <div className="mt-5">
